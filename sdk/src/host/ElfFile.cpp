@@ -16,9 +16,9 @@ fstatFileSize(int filep) {
   return (rc == 0 ? stat_buf.st_size : 0);
 }
 
-ElfFile::ElfFile(void* file) {
+ElfFile::ElfFile(void* file, size_t size) {
   fromFile = false;
-  fileSize = 0;
+  fileSize = size;
   ptr = file;
 
   /* preparation for libelf */
