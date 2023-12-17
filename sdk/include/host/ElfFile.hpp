@@ -20,6 +20,7 @@ namespace Keystone {
 class ElfFile {
  public:
   explicit ElfFile(std::string filename);
+  explicit ElfFile(void* file);
   ~ElfFile();
   size_t getFileSize() { return fileSize; }
   bool isValid();
@@ -42,6 +43,7 @@ class ElfFile {
   void* getProgramSegment(size_t ph);
 
  private:
+  bool fromFile;
   int filep;
 
   /* virtual addresses */

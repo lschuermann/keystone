@@ -153,8 +153,18 @@ Enclave::init(const char* eapppath, const char* runtimepath, const char* loaderp
 
 Error
 Enclave::init(
-    const char* eapppath, const char* runtimepath, const char* loaderpath, Params _params,
+    const char* eapppath, const char* runtimepath, const char* loaderpath, Params params,
     uintptr_t alternatePhysAddr) {
+  ElfFile* enclaveFile = new ElfFile(eapppath);
+  ElfFile* runtimeFile = new ElfFile(runtimepath);
+  ElfFile* loaderFile = new ElfFile(loaderpath);
+  return init(enclaveFile, runtimeFile, loaderFile, params, alternatePhysAddr);
+}
+
+Error
+Enclave::init(
+    ElfFile* enclaveFile, ElfFile* runtimeFile, ElfFile* loaderFile,
+    Params _params, uintptr_t alternatePhysAddr) {
   params = _params;
 
   if (params.isSimulated()) {
@@ -165,10 +175,6 @@ Enclave::init(
     pMemory = new PhysicalEnclaveMemory();
     pDevice = new KeystoneDevice();
   }
-
-  ElfFile* enclaveFile = new ElfFile(eapppath);
-  ElfFile* runtimeFile = new ElfFile(runtimepath);
-  ElfFile* loaderFile = new ElfFile(loaderpath);
 
   if (!pDevice->initDevice(params)) {
     destroy();

@@ -16,7 +16,28 @@ fstatFileSize(int filep) {
   return (rc == 0 ? stat_buf.st_size : 0);
 }
 
+ElfFile::ElfFile(void* file) {
+  fromFile = false;
+  fileSize = 0;
+  ptr = file;
+
+  /* preparation for libelf */
+  if (elf_newFile(ptr, fileSize, &elf)) {
+    return;
+  }
+
+  /* get bound vaddrs */
+  elf_getMemoryBounds(&elf, VIRTUAL, &minVaddr, &maxVaddr);
+
+  if (!IS_ALIGNED(minVaddr, PAGE_SIZE)) {
+    return;
+  }
+
+  maxVaddr = ROUND_UP(maxVaddr, PAGE_BITS);
+}
+
 ElfFile::ElfFile(std::string filename) {
+  fromFile = true;
   fileSize = 0;
   ptr      = NULL;
   filep    = open(filename.c_str(), O_RDONLY);
@@ -52,8 +73,10 @@ ElfFile::ElfFile(std::string filename) {
 }
 
 ElfFile::~ElfFile() {
-  close(filep);
-  munmap(ptr, fileSize);
+  if (fromFile) {
+    close(filep);
+    munmap(ptr, fileSize);
+  }
 }
 
 }  // namespace Keystone

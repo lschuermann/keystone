@@ -62,6 +62,9 @@ class Enclave {
   Error registerOcallDispatch(OcallFunc func);
   Error init(const char* filepath, const char* runtime, const char* loaderpath, Params parameters);
   Error init(
+      ElfFile* enclaveFile, ElfFile* runtimeFile, ElfFile* loaderFile, Params params,
+      uintptr_t alternatePhysAddr);
+  Error init(
       const char* eapppath, const char* runtimepath, const char* loaderpath, Params _params,
       uintptr_t alternatePhysAddr);
   Error destroy();
