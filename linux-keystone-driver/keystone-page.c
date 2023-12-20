@@ -33,11 +33,15 @@ int epm_init(struct epm* epm, unsigned int min_pages)
   unsigned long order = 0;
   unsigned long count = min_pages;
   phys_addr_t device_phys_addr = 0;
+  
+  keystone_info("requested to allocate %lu page(s)\n", count);
 
   /* try to allocate contiguous memory */
   epm->is_cma = 0;
   order = ilog2(min_pages - 1) + 1;
   count = 0x1 << order;
+
+  keystone_info("rounding to nearest power of two: %lu page(s), order %lu\n", count, order);
 
   /* prevent kernel from complaining about an invalid argument */
   if (order < MAX_ORDER)
@@ -46,8 +50,9 @@ int epm_init(struct epm* epm, unsigned int min_pages)
 #ifdef CONFIG_CMA
   /* If buddy allocator fails, we fall back to the CMA */
   if (!epm_vaddr) {
+    keystone_info("allocating %lu page(s) using __get_free_pages failed, requesting %lu CMA pages\n", count, min_pages);
     epm->is_cma = 1;
-    count = min_pages;
+    //count = min_pages;
 
     epm_vaddr = (vaddr_t) dma_alloc_coherent(keystone_dev.this_device,
       count << PAGE_SHIFT,
@@ -63,12 +68,14 @@ int epm_init(struct epm* epm, unsigned int min_pages)
     keystone_err("failed to allocate %lu page(s)\n", count);
     return -ENOMEM;
   }
+  
+  keystone_info("got memory at physaddr %llu / %llu\n", device_phys_addr, __pa(epm_vaddr));
 
   /* zero out */
   memset((void*)epm_vaddr, 0, PAGE_SIZE*count);
 
   epm->root_page_table = (void*)epm_vaddr;
-  epm->pa = __pa(epm_vaddr);
+  epm->pa = (epm->is_cma) ? device_phys_addr : __pa(epm_vaddr);
   epm->order = order;
   epm->size = count << PAGE_SHIFT;
   epm->ptr = epm_vaddr;

@@ -24,7 +24,7 @@ int keystone_create_enclave(struct file *filep, unsigned long arg)
   }
 
   /* Pass base page table */
-  enclp->pt_ptr = __pa(enclave->epm->root_page_table);
+  enclp->pt_ptr = enclave->epm->pa;
   enclp->epm_size = enclave->epm->size;
 
   /* allocate UID */
@@ -73,6 +73,8 @@ int keystone_finalize_enclave(unsigned long arg)
   create_args.free_paddr = enclp->free_paddr;
 
   create_args.params = enclp->params;
+
+  keystone_info("keystone_finalize_enclave_params: epm paddr: %llu, epm size: %llu, utm paddr: %llu, utm size: %llu, runtime_paddr: %llu, user_paddr: %llu, free_paddr: %llu\n", create_args.epm_region.paddr, create_args.epm_region.size, create_args.utm_region.paddr, create_args.utm_region.size, create_args.runtime_paddr, create_args.user_paddr, create_args.free_paddr);
 
   ret = sbi_sm_create_enclave(&create_args);
 

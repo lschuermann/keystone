@@ -54,9 +54,11 @@ int keystone_mmap(struct file* filp, struct vm_area_struct *vma)
   vsize = vma->vm_end - vma->vm_start;
 
   if(enclave->is_init){
+    keystone_info("keystone_mmap is_init!\n");
     if (vsize > PAGE_SIZE)
       return -EINVAL;
-    paddr = __pa(epm->root_page_table) + (vma->vm_pgoff << PAGE_SHIFT);
+    paddr = epm->pa + (vma->vm_pgoff << PAGE_SHIFT);
+    keystone_info("Mapping phyaddr %llu to vaddr %llu\n", paddr, vma->vm_start);
     remap_pfn_range(vma,
                     vma->vm_start,
                     paddr >> PAGE_SHIFT,
@@ -64,9 +66,11 @@ int keystone_mmap(struct file* filp, struct vm_area_struct *vma)
   }
   else
   {
+    keystone_info("keystone_mmap not is_init!\n");
     psize = utm->size;
     if (vsize > psize)
       return -EINVAL;
+    keystone_info("Mapping phyaddr %llu to vaddr %llu\n", __pa(utm->ptr), vma->vm_start);
     remap_pfn_range(vma,
                     vma->vm_start,
                     __pa(utm->ptr) >> PAGE_SHIFT,
